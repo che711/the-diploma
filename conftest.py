@@ -3,8 +3,6 @@ import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-# pytest -s -v --browser_name=chrome test_main_page.py
-# pytest -s -v --browser_name=firefox test_main_page.py
 
 def pytest_addoption(parser):
     parser.addoption('--language', action='store', default='es',

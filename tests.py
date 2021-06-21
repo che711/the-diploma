@@ -16,6 +16,7 @@ def test_login_page(browser):
 
 
 def test_main_page(browser):
+    '''Checking the transition to the product page'''
     link = "https://www.saucedemo.com/"
     login_page = LoginPage(browser, link)
     login_page.open()
