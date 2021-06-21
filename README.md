@@ -1,2 +1,2 @@
-# the-diploma
+# the diploma
 my_diploma
