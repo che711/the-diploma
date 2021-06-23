@@ -44,6 +44,7 @@ def test_name_cart(browser):
     name.name_cart()
 
 def test_product_page(browser):
+    '''Checking the transition to the page`s product'''
     link = "https://www.saucedemo.com/"
     login_page = LoginPage(browser, link)
     login_page.open()
@@ -56,6 +57,19 @@ def test_product_page(browser):
     product = ProductPage(browser, link)
     product.product_name()
 
+def test_add_to_cart(browser):
+    '''Checking add to cart'''
+    link = "https://www.saucedemo.com/"
+    login_page = LoginPage(browser, link)
+    login_page.open()
+    login_page.inter_username()
+    login_page.should_be_login_form
+    login_page.inter_password()
+    login_page.login_button()
+    add_to_cart = browser.find_element_by_xpath('//*[@id="add-to-cart-sauce-labs-backpack"]')
+    add_to_cart.click()
+    check_add_to_cart = CartPage(browser, link)
+    check_add_to_cart.full_cart()
 
 
 
