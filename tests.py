@@ -1,5 +1,4 @@
 import time
-from selenium import webdriver
 from pages.main_page import MainPage
 from pages.login_page import LoginPage
 from pages.cart_page import CartPage
@@ -28,7 +27,7 @@ def test_main_page(browser):
     mainpage = MainPage(browser, link)
     mainpage.main_page()
 
-def test_name_cart(browser):
+def test_cart_page(browser):
     '''Checking the transition to the page`s cart'''
     link = "https://www.saucedemo.com/"
     login_page = LoginPage(browser, link)
@@ -54,8 +53,10 @@ def test_product_page(browser):
     login_page.login_button()
     product = browser.find_element_by_xpath('//*[@id="item_4_img_link"]/img')
     product.click()
+    product_page = ProductPage(browser, link)
+    product_page.product_name()
     product = ProductPage(browser, link)
-    product.product_name()
+    product.product_availability()
 
 def test_add_to_cart(browser):
     '''Checking add to cart'''
