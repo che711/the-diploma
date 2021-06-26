@@ -17,6 +17,7 @@ class CartPageLocators():
     ADD_TO_CART = (By.XPATH, '//*[@id="add-to-cart-sauce-labs-backpack"]')
     EMPTY_CART = (By.XPATH, '//*[@id="shopping_cart_container"]/a')
     FULL_CART = (By.XPATH, '//*[@id="shopping_cart_container"]/a/span')
+    IN_CART = (By.XPATH, '//*[@id="shopping_cart_container"]')
 
 class ProductPageLocators():
     PRODUCT_NAME = (By.XPATH,'//*[@id="inventory_item_container"]/div/div/div[2]/div[1]')

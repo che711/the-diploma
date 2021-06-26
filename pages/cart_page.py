@@ -12,3 +12,9 @@ class CartPage(BasePage):
         '''Checking add to cart'''
         assert self.is_element_present(*CartPageLocators.FULL_CART), "Full cart"
         print("\n\tThe cart is not empty")
+
+    def in_cart(self):
+        '''Go to cart'''
+        in_cart = self.browser.find_element(*CartPageLocators.IN_CART)
+        in_cart.click()
+        print("\n\tGo to cart")
