@@ -35,3 +35,14 @@ def creare_booking():
         "additionalneeds": "Breakfast"
     }
     return creare_booking
+
+
+
+@pytest.fixture()
+def partial_update():
+    partial_update = {
+        "firstname": "James",
+        "lastname": "Brown"
+        }
+    return partial_update
+

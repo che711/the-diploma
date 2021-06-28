@@ -12,6 +12,12 @@ def test_auth(user_data):
     assert auth.status_code == 200, 'Falling'
 
 def test_booking():
+    '''Returns a specific booking based upon the booking id provided.'''
+    booking_id_get = requests.get(url=api_urls.BOOKING, headers=HEADERS, )
+    print("\n\t", booking_id_get.status_code, "\t", booking_id_get.headers)
+    assert booking_id_get.status_code == 200, 'Falling'
+
+def test_bookinglbs():
     '''
     Returns the ids of all the bookings that exist within the API.
     Can take optional query strings to search and return a subset of booking ids.
@@ -22,11 +28,6 @@ def test_booking():
     # asdf = list(booking_get)
     # print("\n\t", asdf[0],[0])
 
-def test_bookintlbs():
-    '''Returns a specific booking based upon the booking id provided.'''
-    booking_id_get = requests.get(url=api_urls.BOOKING_ID, headers=HEADERS, )
-    print("\n\t", booking_id_get.status_code, "\t", booking_id_get.headers)
-    assert booking_id_get.status_code == 200, 'Falling'
 
 def test_creare_booking(creare_booking):
     '''Creates a new booking in the API'''
@@ -42,26 +43,27 @@ def test_booking_update(creare_booking):
     assert booking_update.status_code == 200, 'Falling'
 
 
-def test_partial_update_booking():
+def test_partial_update_booking(creare_booking):
     '''Updates a current booking with a partial payload'''
-    pass
+    partial_update = requests.put(url=api_urls.BOOKING, headers=HEADERS, data=dumps(creare_booking))
+    print("\n\t", partial_update.status_code, "\n\t", partial_update.headers)
+    assert partial_update.status_code == 200, 'Falling'
 
 
-
-def test_delete_booking(user_data):
+def test_delete_booking():
     '''
     Returns the ids of all the bookings that exist within the API.
     Can take optional query strings to search and return a subset of booking ids.
     '''
-    booking_delete = requests.delete(url=api_urls.BOOKING_ID, headers=HEADERS,)
+    booking_delete = requests.delete(url=api_urls.DELETE_BOOKING, headers=HEADERS,)
     print("\n\t", booking_delete.status_code, "\t", booking_delete.headers)
     assert booking_delete.status_code == 201, 'Falling'
 
 def test_ping():
     '''A simple health check endpoint to confirm whether the API is up and running'''
-    ping = requests.get(url=api_urls.PING, headers=HEADERS)
+    ping = requests.get(url=api_urls.PING)
     print("\n\t", ping.status_code, "\t", ping.text)
-    assert ping.status_code == 200, 'Falling'
+    assert ping.status_code == 201, 'Falling'
 
 
 
