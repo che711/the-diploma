@@ -1,7 +1,10 @@
-BASE_URL = "https://petstore.swagger.io/v2"
+from random import randint
 
-# USERS
-USER = BASE_URL + "/user"
-USER_NAME = BASE_URL + "/user/{username}"
-LOGIN = BASE_URL + "/user/login"
-LOGOUT = BASE_URL + "/user/logout"
+BASE_URL = "https://restful-booker.herokuapp.com"
+
+AUTH = BASE_URL + "/auth"
+BOOKING = BASE_URL + "/booking"
+BOOKING_ID = BOOKING + f"/:{randint (1,20)}"
+UPDATE_BOOKONG = "https://restful-booker.herokuapp.com/booking/:id"
+PING = BASE_URL + "/ping"
+
