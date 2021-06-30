@@ -20,7 +20,7 @@ def user_data():
     return data
 
 @pytest.fixture()
-def creare_booking():
+def create_booking():
     random_data = randomaizer.RandomData()
     random_name = random_data.generate_word(6)
     creare_booking = {
@@ -32,17 +32,12 @@ def creare_booking():
             "checkin": "2018-01-01",
             "checkout": "2019-01-01"
         },
-        "additionalneeds": "Breakfast"
+        "additionalneeds": random_name.title()
     }
     return creare_booking
 
-
-
 @pytest.fixture()
 def partial_update():
-    partial_update = {
-        "firstname": "James",
-        "lastname": "Brown"
-        }
-    return partial_update
+    partial_update1 = {"firstname": "James", "lastname": "Brown"}
+    return partial_update1
 
