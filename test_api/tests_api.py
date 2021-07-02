@@ -1,6 +1,6 @@
 import requests
 from test_api import api_urls
-from test_api.headers import HEADERS, ACCEPT,HEADERS_TWO
+from test_api.headers import HEADERS, ACCEPT, HEADERS_TWO
 from json import dumps, loads
 import json
 
@@ -8,7 +8,7 @@ import json
 
 def test_auth(user_data):
     '''Creating a new user'''
-    auth = requests.post(url=api_urls.AUTH, headers=HEADERS, data=dumps(user_data))
+    auth = requests.post(url=api_urls.AUTH, headers=HEADERS,  data=dumps(user_data))
     print("\n\t", auth.status_code, "\t", auth.text)
     print("\n\tresponse.url:{}\n\n".format(auth.url))
     assert auth.status_code == 200, 'Falling'
@@ -43,53 +43,55 @@ def test_create_booking(create_booking):
     print("\n\t", create_booking_post.status_code, "\t", create_booking_post.text)
     assert create_booking_post.status_code == 200, 'Falling'
 
-def test_booking_update(create_booking, user_data):
+def test_booking_update(create_booking, user_data, partial_update):
     '''Updates a current booking'''
     ids = []
     auth = requests.post(url=api_urls.AUTH, headers=HEADERS, data=dumps(user_data))
     id = json.loads(auth.text)
-    print("\n\t", auth.status_code, "\t", auth.text, "\n\t", id['token'], )
-    creare_booking_post = requests.post(url=api_urls.BOOKING, headers=HEADERS, params=auth.text, data=dumps(create_booking))
-    print("\n\t", creare_booking_post.status_code, "\t", creare_booking_post.json())
+    a = f"token={id['token']}"
+    cookie = {"cookie": a}
+    print(cookie)
+    creare_booking_post = requests.post(url=api_urls.BOOKING, headers=HEADERS,  data=dumps(create_booking))
+    print("\n\t", creare_booking_post.status_code, "\n\t", creare_booking_post.json())
     dic = creare_booking_post.json()
     for key, value in dic.items():
         ids.append(value)
     link = f"https://restful-booker.herokuapp.com/booking/{ids[0]}"
     print("\n\t", link)
-    booking_update = requests.post(url=link, headers=HEADERS, data=dumps(create_booking))
+    booking_update = requests.patch(url=link, headers=cookie, data=dumps(create_booking))
     print("\n\t", booking_update.status_code, "\t", booking_update.text)
     assert booking_update.status_code == 200, 'Falling'
 
 
-def test_partial_update_booking(create_booking, partial_update):
+def test_partial_update_booking(create_booking, user_data, partial_update):
     '''Updates a current booking with a partial payload'''
     ids = []
-    creare_booking_post = requests.post(url=api_urls.BOOKING, headers=HEADERS, data=dumps(create_booking))
+    auth = requests.post(url=api_urls.AUTH, headers=HEADERS, data=dumps(user_data))
+    cookie_value = f"token={json.loads(auth.text)['token']}"
+    cookie = {"cookie": cookie_value}
+    print("\n\t", cookie)
+    creare_booking_post = requests.post(url=api_urls.BOOKING, headers=HEADERS,  data=dumps(create_booking))
     print("\n\t", creare_booking_post.status_code, "\t", creare_booking_post.json())
     dic = creare_booking_post.json()
-    for key, value in dic.items():
-        ids.append(value)
+    for key, value in dic.items(): ids.append(value)
     link = f"https://restful-booker.herokuapp.com/booking/{ids[0]}"
-    print("\t", link)
-    partial_update_booking = requests.put(url=link, headers=HEADERS, data=dumps(partial_update))
+    print("\n\t", link)
+    partial_update_booking = requests.patch(url=link, headers=cookie, data=dumps(partial_update))
     print("\n\t", partial_update_booking.status_code, "\t", partial_update_booking.headers)
-
     assert partial_update_booking.status_code == 200, 'Falling'
 
-def test_delete_booking(user_data, create_booking):
+def test_delete_booking(user_data):
     '''Delete_booking'''
     auth = requests.post(url=api_urls.AUTH, headers=HEADERS, data=dumps(user_data))
-    print("\n\t", auth.status_code, "\t", auth.text)
     id = json.loads(auth.text)
-    # print("\n\t", id['token'], )
-    # print("\n\t", id)
-    booking_delete = requests.delete(url=api_urls.DELETE_BOOKING, auth=dumps(auth))
+    a = f"token={id['token']}"
+    cookie = {"cookie": a}
+    booking_delete = requests.delete(url=api_urls.DELETE_BOOKING, headers=cookie)
     print("\n\t", booking_delete.status_code, "\t", booking_delete.text)
+    print("\t", api_urls.DELETE_BOOKING)
     assert booking_delete.status_code == 201, 'Falling'
 
-
 def test_ping():
-
     '''A simple health check endpoint to c
     onfirm whether the API is up and running'''
     ping = requests.get(url=api_urls.PING)

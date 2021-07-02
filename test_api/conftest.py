@@ -1,7 +1,12 @@
 import pytest
 from random import randint
-
 import randomaizer
+from test_api.headers import HEADERS
+import requests
+from test_api import api_urls
+from json import dumps, loads
+import json
+
 
 @pytest.fixture()
 def user_data():
@@ -41,3 +46,10 @@ def partial_update():
     partial_update1 = {"firstname": "James", "lastname": "Brown"}
     return partial_update1
 
+# @pytest.fixture()
+# def create_cookie(user_data):
+#     auth = requests.post(url=api_urls.AUTH, headers=HEADERS, data=dumps(user_data))
+#     id = json.loads(auth.text)
+#     a = f"token={id['token']}"
+#     cookie = {"cookie": a}
+#     return cookie
