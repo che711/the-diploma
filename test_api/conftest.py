@@ -37,5 +37,10 @@ def create_booking():
 
 @pytest.fixture()
 def partial_update():
-    partial_update1 = {"firstname": "James", "lastname": "Brown"}
+    random_data = randomaizer.RandomData()
+    random_name = random_data.generate_word(6)
+    partial_update1 = {
+        "firstname": random_name.title(),
+        "lastname": random_name.title(),
+        }
     return partial_update1
