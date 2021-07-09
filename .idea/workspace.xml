@@ -2,26 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9de58489-d02c-46e0-8d16-a954e9c08942" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/cart_page.py" beforeDir="false" afterPath="$PROJECT_DIR$/pages/cart_page.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/locators.py" beforeDir="false" afterPath="$PROJECT_DIR$/pages/locators.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/login_page.py" beforeDir="false" afterPath="$PROJECT_DIR$/pages/login_page.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/main_page.py" beforeDir="false" afterPath="$PROJECT_DIR$/pages/main_page.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pages/product_page.py" beforeDir="false" afterPath="$PROJECT_DIR$/pages/product_page.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/style.css" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/report.html" beforeDir="false" afterPath="$PROJECT_DIR$/report.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/venv/lib/python3.8/site-packages/pip-21.1.2.dist-info/INSTALLER" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/venv/lib/python3.8/site-packages/pip-21.1.2.dist-info/LICENSE.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/venv/lib/python3.8/site-packages/pip-21.1.2.dist-info/METADATA" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/venv/lib/python3.8/site-packages/pip-21.1.2.dist-info/RECORD" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/venv/lib/python3.8/site-packages/pip-21.1.2.dist-info/WHEEL" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/venv/lib/python3.8/site-packages/pip-21.1.2.dist-info/entry_points.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/venv/lib/python3.8/site-packages/pip-21.1.2.dist-info/top_level.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/venv/lib/python3.8/site-packages/pip/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/venv/lib/python3.8/site-packages/pip/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/venv/lib/python3.8/site-packages/pip/_internal/cli/req_command.py" beforeDir="false" afterPath="$PROJECT_DIR$/venv/lib/python3.8/site-packages/pip/_internal/cli/req_command.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/venv/lib/python3.8/site-packages/pip/_internal/req/req_install.py" beforeDir="false" afterPath="$PROJECT_DIR$/venv/lib/python3.8/site-packages/pip/_internal/req/req_install.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/venv/lib/python3.8/site-packages/pip/_vendor/tenacity/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/venv/lib/python3.8/site-packages/pip/_vendor/tenacity/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_api/assets/style.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_api/report.html" beforeDir="false" afterPath="$PROJECT_DIR$/test_api/report.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

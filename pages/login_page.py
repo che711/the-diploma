@@ -22,9 +22,11 @@ class LoginPage(BasePage):
         print("\n\tClick 'LOGIN'")
 
     def should_be_login_form(self):
+        """Checking the presence of the login form"""
         assert self.is_element_present(*LoginPageLocators.LOGIN_FORM), "Login form is not found"
 
     def add_cart(self):
+        """Checking the add to cart function"""
         add = self.browser.find_element(*MainPageLocators.ADD_BACKPACK)
         add.click()
         print("\n\tClick 'Add to cart'")
