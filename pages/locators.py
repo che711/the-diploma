@@ -11,6 +11,8 @@ class LoginPageLocators():
 class MainPageLocators():
     HEADER = (By.XPATH, '//*[@id="header_container"]/div[2]/span')
     ADD_TO_PRODUCT = (By.XPATH, '//*[@id="item_4_title_link"]')
+    ADD_BACKPACK = (By.XPATH, '//*[@id="add-to-cart-sauce-labs-backpack"]')
+    FIND_NAME = (By.XPATH, '//*[@id="item_4_title_link"]/div')
 
 class CartPageLocators():
     HEADER_CART = (By.XPATH, '//*[@id="header_container"]/div[2]/span')
@@ -18,8 +20,10 @@ class CartPageLocators():
     EMPTY_CART = (By.XPATH, '//*[@id="shopping_cart_container"]/a')
     FULL_CART = (By.XPATH, '//*[@id="shopping_cart_container"]/a/span')
     IN_CART = (By.XPATH, '//*[@id="shopping_cart_container"]')
+    PRODUCTS_NAME_IN_CART = (By.XPATH, '//*[@id="item_4_title_link"]/div')
 
 class ProductPageLocators():
-    PRODUCT_NAME = (By.XPATH,'//*[@id="inventory_item_container"]/div/div/div[2]/div[1]')
+    PRODUCT_NAME = (By.XPATH, '//*[@id="inventory_item_container"]/div/div/div[2]/div[1]')
     PRODUCT_AVAILABILITY = (By.XPATH, '//*[@id="inventory_item_container"]/div/div/div[2]/div[1]')
-
+    ADD_TO_CART = (By.XPATH, '//*[@id="add-to-cart-sauce-labs-backpack"]')
+    PRODUCT_PAGE = (By.XPATH, '//*[@id="item_4_img_link"]/img')

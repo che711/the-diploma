@@ -14,4 +14,20 @@ class ProductPage(BasePage):
         assert self.is_element_present(*ProductPageLocators.PRODUCT_AVAILABILITY), "Product is not found"
         print("\n\tProduct is on the page")
 
+    def add_product(self):
+        """Adding product to cart"""
+        add_to_cart = self.browser.find_element(*ProductPageLocators.ADD_TO_CART)
+        add_to_cart.click()
+        print("\n\tAdding to cart")
+
+    def check_product(self):
+        """Check Product"""
+        product = self.browser.find_element(*ProductPageLocators.PRODUCT_PAGE)
+        product.click()
+
+
+
+
+
+
 

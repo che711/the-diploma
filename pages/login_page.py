@@ -1,5 +1,5 @@
 from .base_page import BasePage
-from .locators import LoginPageLocators
+from .locators import LoginPageLocators, MainPageLocators
 
 class LoginPage(BasePage):
 
@@ -23,4 +23,9 @@ class LoginPage(BasePage):
 
     def should_be_login_form(self):
         assert self.is_element_present(*LoginPageLocators.LOGIN_FORM), "Login form is not found"
+
+    def add_cart(self):
+        add = self.browser.find_element(*MainPageLocators.ADD_BACKPACK)
+        add.click()
+        print("\n\tClick 'Add to cart'")
 

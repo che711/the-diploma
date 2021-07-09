@@ -1,6 +1,5 @@
 from .base_page import BasePage
-from selenium.webdriver.common.by import By
-from .locators import MainPageLocators
+from .locators import MainPageLocators, ProductPageLocators
 
 class MainPage(BasePage):
 
@@ -14,9 +13,12 @@ class MainPage(BasePage):
         add = MainPageLocators.ADD_TO_PRODUCT
         add.click()
 
+    def name_in_main_page(self):
+        """Find out the name of the product in the shopping cart"""
+        product_name = self.browser.find_element(*MainPageLocators.FIND_NAME)
+        text_name1 = product_name.text
+        print("\n\tThe product name on the main page: ", text_name1)
+        return text_name1
 
 
-
-    # def should_be_login_link(self):
-    #     assert self.is_element_present(*MainPageLocators.LOGIN_LINK), "Login link is not presented"
 
