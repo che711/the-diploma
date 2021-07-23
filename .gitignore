@@ -1,3 +1,5 @@
 /assets/
 /venv/
 /assets/
+/__pycache__/
+/.idea/
