@@ -6,6 +6,7 @@ import json
 
 #  pytest -s -vv --html=report.html tests_api.py
 #  pip install -r requirements.txt
+#  pytest -s -vv --alluredir=results tests_api.py
 
 def test_auth(user_data):
     '''Creating a new user'''
