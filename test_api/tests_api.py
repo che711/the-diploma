@@ -4,7 +4,6 @@ from test_api.headers import HEADERS
 from json import dumps
 import json
 
-#  pytest -s -vv --html=report.html tests_api.py
 #  pip install -r requirements.txt
 #  pytest -s -vv --alluredir=results tests_api.py
 
