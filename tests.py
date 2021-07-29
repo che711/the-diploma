@@ -3,7 +3,7 @@ from pages.login_page import LoginPage
 from pages.cart_page import CartPage
 from pages.product_page import ProductPage
 
-#  pytest -s -vv --html=report.html tests.py
+
 #  pytest -s -vv --alluredir=results tests.py
 
 def test_login_page(browser):
