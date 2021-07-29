@@ -61,7 +61,7 @@ def test_partial_update_booking(create_booking, user_data):
     dic = creare_booking_post.json()
     for key, value in dic.items(): ids.append(value)
     link = f"https://restful-booker.herokuapp.com/booking/{ids[0]}"
-    partial_update_booking = requests.patch(url=link, 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headers=cookie, data=dumps(create_booking))
+    partial_update_booking = requests.patch(url=link, headers=cookie, data=dumps(create_booking))
     assert partial_update_booking.status_code == 200, 'Partial update by id does not work'
 
 def test_delete_booking(user_data):
