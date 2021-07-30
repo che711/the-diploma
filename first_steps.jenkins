@@ -3,10 +3,8 @@
 properties([disableConcurrentBuilds()])
 
 pipeline {
-    agent any
-    tools {maven 'maven'} {
-        label 'master'
-        }
+    agent {label 'master'}
+    tools {maven 'maven'}
     options {
         buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '10'))
         timestamps()
@@ -43,7 +41,7 @@ pipeline {
         }
         stage('Chrome') {
             steps {
-	        	sh 'mvn clean test "-Dsurefire.suiteXmlFiles=src/test/resources/TestNG.xml" "-Dtestng.dtd.http=true"'
+	        	sh 'mvn clean test "-Dsurefire.suiteXmlFiles=./test.py" "-Dtestng.dtd.http=true"'
             }
         }
     }
