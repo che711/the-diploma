@@ -41,7 +41,7 @@ pipeline {
         }
         stage('Chrome') {
             steps {
-	        	sh 'mvn clean test "-Dsurefire.suiteXmlFiles=./test.py" "-Dtestng.dtd.http=true"'
+	        	sh 'mvn clean test "-Dsurefire.suiteXmlFiles=./tests.py" "-Dtestng.dtd.http=true"'
             }
         }
     }
