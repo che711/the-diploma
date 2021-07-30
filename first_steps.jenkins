@@ -42,7 +42,7 @@ pipeline {
         }
         stage('Chrome') {
             steps {
-	        	sh 'print("Oooops!")'
+	        	'echo "Oooops!"'
             }
         }
     }
