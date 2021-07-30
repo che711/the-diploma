@@ -1,6 +1,5 @@
 import pytest
 import time
-import os
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
@@ -15,7 +14,7 @@ def browser(request):
     options = Options()
     options.add_argument("--headless")
     options.add_experimental_option('prefs', {'intl.accept_languages': user_language})
-    browser = webdriver.Chrome(options=options)
+    browser = webdriver.Chrome(options)
     #browser.maximize_window()
     time.sleep(5)
     yield browser
