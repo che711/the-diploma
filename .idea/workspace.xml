@@ -5,7 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9de58489-d02c-46e0-8d16-a954e9c08942" name="Default Changelist" comment="add tests">
-      <change beforePath="$PROJECT_DIR$/first_steps.jenkins" beforeDir="false" afterPath="$PROJECT_DIR$/first_steps.jenkins" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
