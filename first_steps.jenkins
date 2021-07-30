@@ -33,6 +33,7 @@ pipeline {
         stage("Fifth step") {
             steps {
                 sh 'python3'
+                sh 'docker pull selenoid/chrome'
                 sh 'chmod +x ./cm'
                 sh './cm selenoid start'
 		        sh './cm selenoid status'
