@@ -1,0 +1,51 @@
+#!groovy
+// Check ub1 properties
+properties([disableConcurrentBuilds()])
+
+pipeline {
+    agent { 
+        label 'master'
+        }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '10'))
+        timestamps()
+    }
+    stages {
+        stage("First step") {
+            steps {
+                echo "Hello, groovy!"
+            }
+        }
+        stage("Second step") {
+            steps {
+                chuckNorris()
+            }
+        }
+        stage("Third step") {
+            steps {
+                echo "Hello, facking Jenkins!"
+            }
+        }
+        stage("Fourth step") {
+            steps {
+                tool name: 'System-CPython-3.8.10', type: 'jenkins.plugins.shiningpanda.tools.PythonInstallation'
+            }
+        }
+        stage("Fifth step") {
+            steps {
+                sh 'python3'
+                sh 'chmod +x ./cm'
+                sh './cm selenoid start'
+		        sh './cm selenoid status'
+		        sh 'curl http://localhost:4444/status'
+            }
+        }
+        stage('Chrome') {
+            steps {
+	        	sh 'mvn clean test "-Dsurefire.suiteXmlFiles=src/test/resources/TestNG.xml" "-Dtestng.dtd.http=true"'
+            }
+        }
+    }
+}
+
+
