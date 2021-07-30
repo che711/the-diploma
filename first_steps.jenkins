@@ -38,7 +38,6 @@ pipeline {
                 sh './cm selenoid start'
 		        sh './cm selenoid status'
 		        sh 'curl http://localhost:4444/status'
-		        sh 'pip install -r requirements.txt'
             }
         }
         stage('Chrome') {
