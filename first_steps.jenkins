@@ -42,7 +42,7 @@ pipeline {
         }
         stage('Chrome') {
             steps {
-                allure includeProperties: false, jdk: '', results: [[path: 'results']]
+                build 'job to git'
             }
         }
     }
