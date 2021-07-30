@@ -3,7 +3,8 @@
 properties([disableConcurrentBuilds()])
 
 pipeline {
-    agent { 
+    agent any
+    tools {maven 'maven'} {
         label 'master'
         }
     options {
