@@ -53,7 +53,7 @@
       <recent name="$PROJECT_DIR$" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.asdfaffd">
+  <component name="RunManager" selected="Python.conftest">
     <configuration name="asdfaffd" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="the-diploma" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -161,9 +161,9 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.conftest" />
         <item itemvalue="Python.asdfaffd" />
         <item itemvalue="Python.headers" />
-        <item itemvalue="Python.conftest" />
         <item itemvalue="Python.locators" />
         <item itemvalue="Python.cart_page" />
       </list>
