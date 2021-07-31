@@ -43,6 +43,10 @@ pipeline {
         stage('Start "job to git"') {
             steps {
                 build 'job to git'
+            }
+        }
+        stage('Start "PageObject"') {
+            steps {
                 build 'PageObject'
 
             }
