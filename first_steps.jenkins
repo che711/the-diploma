@@ -22,7 +22,7 @@ pipeline {
         }
         stage("Third step") {
             steps {
-                echo "Hello, facking Jenkins!"
+                echo "Hello, Jenkins!"
             }
         }
         stage("Fourth step") {
