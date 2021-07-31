@@ -40,7 +40,7 @@ pipeline {
 		        sh 'curl http://localhost:4444/status'
             }
         }
-        stage('Chrome') {
+        stage('Start "job to git"') {
             steps {
                 build 'job to git'
             }
