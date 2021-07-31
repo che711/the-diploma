@@ -36,8 +36,8 @@ pipeline {
                 sh 'docker pull selenoid/chrome'
                 sh 'chmod +x ./cm'
                 sh './cm selenoid start'
-		        sh './cm selenoid status'
-		        sh 'curl http://localhost:4444/status'
+		sh './cm selenoid status'
+		sh 'curl http://localhost:4444/status'
             }
         }
         stage('Start "job to git"') {
