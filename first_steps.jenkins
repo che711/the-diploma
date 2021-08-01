@@ -45,12 +45,6 @@ pipeline {
                 build 'job to git'
             }
         }
-        stage('Start "PageObject"') {
-            steps {
-                build 'PageObject'
-
-            }
-        }
     }
 }
 
