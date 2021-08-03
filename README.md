@@ -1,2 +1,2 @@
 # the-diploma
-my_diploma
+My graduation project in TeachMeSkills
