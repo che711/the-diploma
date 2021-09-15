@@ -3,6 +3,7 @@ from test_api import api_urls
 from test_api.headers import HEADERS
 from json import dumps
 import json
+import pytest
 
 #  pip install -r requirements.txt
 #  pytest -s -vv --alluredir=results tests_api.py
