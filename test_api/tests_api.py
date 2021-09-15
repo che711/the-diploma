@@ -64,6 +64,7 @@ def test_partial_update_booking(create_booking, user_data):
     partial_update_booking = requests.patch(url=link, headers=cookie, data=dumps(create_booking))
     assert partial_update_booking.status_code == 200, 'Partial update by id does not work'
 
+@pytest.mark.xfail
 def test_delete_booking(user_data):
     '''Delete_booking'''
     auth = requests.post(url=api_urls.AUTH, headers=HEADERS, data=dumps(user_data))
