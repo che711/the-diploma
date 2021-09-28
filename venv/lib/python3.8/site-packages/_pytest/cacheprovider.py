@@ -1,11 +1,9 @@
-"""
-merged implementation of the cache provider
-
-the name cache was not chosen to ensure pluggy automatically
-ignores the external pytest-cache
-"""
+"""Implementation of the cache provider."""
+# This plugin was not named "cache" to avoid conflicts with the external
+# pytest-cache version.
 import json
 import os
+from pathlib import Path
 from typing import Dict
 from typing import Generator
 from typing import Iterable
@@ -17,20 +15,22 @@ from typing import Union
 import attr
 import py
 
-import pytest
-from .pathlib import Path
 from .pathlib import resolve_from_str
 from .pathlib import rm_rf
 from .reports import CollectReport
 from _pytest import nodes
 from _pytest._io import TerminalWriter
-from _pytest.compat import order_preserving_dict
+from _pytest.compat import final
 from _pytest.config import Config
 from _pytest.config import ExitCode
+from _pytest.config import hookimpl
 from _pytest.config.argparsing import Parser
+from _pytest.deprecated import check_ispytest
+from _pytest.fixtures import fixture
 from _pytest.fixtures import FixtureRequest
 from _pytest.main import Session
 from _pytest.python import Module
+from _pytest.python import Package
 from _pytest.reports import TestReport
 
 
@@ -53,7 +53,8 @@ Signature: 8a477f597d28d172789f06886806bc55
 """
 
 
-@attr.s
+@final
+@attr.s(init=False)
 class Cache:
     _cachedir = attr.ib(type=Path, repr=False)
     _config = attr.ib(type=Config, repr=False)
@@ -64,26 +65,52 @@ class Cache:
     # sub-directory under cache-dir for values created by "set"
     _CACHE_PREFIX_VALUES = "v"
 
-    @classmethod
-    def for_config(cls, config: Config) -> "Cache":
-        cachedir = cls.cache_dir_from_config(config)
-        if config.getoption("cacheclear") and cachedir.is_dir():
-            cls.clear_cache(cachedir)
-        return cls(cachedir, config)
+    def __init__(
+        self, cachedir: Path, config: Config, *, _ispytest: bool = False
+    ) -> None:
+        check_ispytest(_ispytest)
+        self._cachedir = cachedir
+        self._config = config
 
     @classmethod
-    def clear_cache(cls, cachedir: Path) -> None:
-        """Clears the sub-directories used to hold cached directories and values."""
+    def for_config(cls, config: Config, *, _ispytest: bool = False) -> "Cache":
+        """Create the Cache instance for a Config.
+
+        :meta private:
+        """
+        check_ispytest(_ispytest)
+        cachedir = cls.cache_dir_from_config(config, _ispytest=True)
+        if config.getoption("cacheclear") and cachedir.is_dir():
+            cls.clear_cache(cachedir, _ispytest=True)
+        return cls(cachedir, config, _ispytest=True)
+
+    @classmethod
+    def clear_cache(cls, cachedir: Path, _ispytest: bool = False) -> None:
+        """Clear the sub-directories used to hold cached directories and values.
+
+        :meta private:
+        """
+        check_ispytest(_ispytest)
         for prefix in (cls._CACHE_PREFIX_DIRS, cls._CACHE_PREFIX_VALUES):
             d = cachedir / prefix
             if d.is_dir():
                 rm_rf(d)
 
     @staticmethod
-    def cache_dir_from_config(config: Config) -> Path:
-        return resolve_from_str(config.getini("cache_dir"), config.rootdir)
+    def cache_dir_from_config(config: Config, *, _ispytest: bool = False) -> Path:
+        """Get the path to the cache directory for a Config.
 
-    def warn(self, fmt: str, **args: object) -> None:
+        :meta private:
+        """
+        check_ispytest(_ispytest)
+        return resolve_from_str(config.getini("cache_dir"), config.rootpath)
+
+    def warn(self, fmt: str, *, _ispytest: bool = False, **args: object) -> None:
+        """Issue a cache warning.
+
+        :meta private:
+        """
+        check_ispytest(_ispytest)
         import warnings
         from _pytest.warning_types import PytestCacheWarning
 
@@ -94,14 +121,16 @@ class Cache:
         )
 
     def makedir(self, name: str) -> py.path.local:
-        """ return a directory path object with the given name.  If the
-        directory does not yet exist, it will be created.  You can use it
-        to manage files likes e. g. store/retrieve database
-        dumps across test sessions.
+        """Return a directory path object with the given name.
 
-        :param name: must be a string not containing a ``/`` separator.
-             Make sure the name contains your plugin or application
-             identifiers to prevent clashes with other cache users.
+        If the directory does not yet exist, it will be created. You can use
+        it to manage files to e.g. store/retrieve database dumps across test
+        sessions.
+
+        :param name:
+            Must be a string not containing a ``/`` separator.
+            Make sure the name contains your plugin or application
+            identifiers to prevent clashes with other cache users.
         """
         path = Path(name)
         if len(path.parts) > 1:
@@ -114,15 +143,16 @@ class Cache:
         return self._cachedir.joinpath(self._CACHE_PREFIX_VALUES, Path(key))
 
     def get(self, key: str, default):
-        """ return cached value for the given key.  If no value
-        was yet cached or the value cannot be read, the specified
+        """Return the cached value for the given key.
+
+        If no value was yet cached or the value cannot be read, the specified
         default is returned.
 
-        :param key: must be a ``/`` separated value. Usually the first
-             name is the name of your plugin or your application.
-        :param default: must be provided in case of a cache-miss or
-             invalid cache values.
-
+        :param key:
+            Must be a ``/`` separated value. Usually the first
+            name is the name of your plugin or your application.
+        :param default:
+            The value to return in case of a cache-miss or invalid cache value.
         """
         path = self._getvaluepath(key)
         try:
@@ -132,13 +162,14 @@ class Cache:
             return default
 
     def set(self, key: str, value: object) -> None:
-        """ save value for the given key.
+        """Save value for the given key.
 
-        :param key: must be a ``/`` separated value. Usually the first
-             name is the name of your plugin or your application.
-        :param value: must be of any combination of basic
-               python types, including nested types
-               like e. g. lists of dictionaries.
+        :param key:
+            Must be a ``/`` separated value. Usually the first
+            name is the name of your plugin or your application.
+        :param value:
+            Must be of any combination of basic python types,
+            including nested types like lists of dictionaries.
         """
         path = self._getvaluepath(key)
         try:
@@ -148,7 +179,7 @@ class Cache:
                 cache_dir_exists_already = self._cachedir.exists()
                 path.parent.mkdir(exist_ok=True, parents=True)
         except OSError:
-            self.warn("could not create cache path {path}", path=path)
+            self.warn("could not create cache path {path}", path=path, _ispytest=True)
             return
         if not cache_dir_exists_already:
             self._ensure_supporting_files()
@@ -156,7 +187,7 @@ class Cache:
         try:
             f = path.open("w")
         except OSError:
-            self.warn("cache could not write path {path}", path=path)
+            self.warn("cache could not write path {path}", path=path, _ispytest=True)
         else:
             with f:
                 f.write(data)
@@ -179,11 +210,11 @@ class LFPluginCollWrapper:
         self.lfplugin = lfplugin
         self._collected_at_least_one_failure = False
 
-    @pytest.hookimpl(hookwrapper=True)
-    def pytest_make_collect_report(self, collector: nodes.Collector) -> Generator:
+    @hookimpl(hookwrapper=True)
+    def pytest_make_collect_report(self, collector: nodes.Collector):
         if isinstance(collector, Session):
             out = yield
-            res = out.get_result()  # type: CollectReport
+            res: CollectReport = out.get_result()
 
             # Sort any lf-paths to the beginning.
             lf_paths = self.lfplugin._last_failed_paths
@@ -226,11 +257,14 @@ class LFPluginCollSkipfiles:
     def __init__(self, lfplugin: "LFPlugin") -> None:
         self.lfplugin = lfplugin
 
-    @pytest.hookimpl
+    @hookimpl
     def pytest_make_collect_report(
         self, collector: nodes.Collector
     ) -> Optional[CollectReport]:
-        if isinstance(collector, Module):
+        # Packages are Modules, but _last_failed_paths only contains
+        # test-bearing paths and doesn't try to include the paths of their
+        # packages, so don't filter them.
+        if isinstance(collector, Module) and not isinstance(collector, Package):
             if Path(str(collector.fspath)) not in self.lfplugin._last_failed_paths:
                 self.lfplugin._skipped_files += 1
 
@@ -241,18 +275,16 @@ class LFPluginCollSkipfiles:
 
 
 class LFPlugin:
-    """ Plugin which implements the --lf (run last-failing) option """
+    """Plugin which implements the --lf (run last-failing) option."""
 
     def __init__(self, config: Config) -> None:
         self.config = config
         active_keys = "lf", "failedfirst"
         self.active = any(config.getoption(key) for key in active_keys)
         assert config.cache
-        self.lastfailed = config.cache.get(
-            "cache/lastfailed", {}
-        )  # type: Dict[str, bool]
-        self._previously_failed_count = None  # type: Optional[int]
-        self._report_status = None  # type: Optional[str]
+        self.lastfailed: Dict[str, bool] = config.cache.get("cache/lastfailed", {})
+        self._previously_failed_count: Optional[int] = None
+        self._report_status: Optional[str] = None
         self._skipped_files = 0  # count skipped files during collection due to --lf
 
         if config.getoption("lf"):
@@ -262,8 +294,8 @@ class LFPlugin:
             )
 
     def get_last_failed_paths(self) -> Set[Path]:
-        """Returns a set with all Paths()s of the previously failed nodeids."""
-        rootpath = Path(str(self.config.rootdir))
+        """Return a set with all Paths()s of the previously failed nodeids."""
+        rootpath = self.config.rootpath
         result = {rootpath / nodeid.split("::")[0] for nodeid in self.lastfailed}
         return {x for x in result if x.exists()}
 
@@ -287,7 +319,7 @@ class LFPlugin:
         else:
             self.lastfailed[report.nodeid] = True
 
-    @pytest.hookimpl(hookwrapper=True, tryfirst=True)
+    @hookimpl(hookwrapper=True, tryfirst=True)
     def pytest_collection_modifyitems(
         self, config: Config, items: List[nodes.Item]
     ) -> Generator[None, None, None]:
@@ -351,7 +383,7 @@ class LFPlugin:
 
 
 class NFPlugin:
-    """ Plugin which implements the --nf (run new-first) option """
+    """Plugin which implements the --nf (run new-first) option."""
 
     def __init__(self, config: Config) -> None:
         self.config = config
@@ -359,15 +391,15 @@ class NFPlugin:
         assert config.cache is not None
         self.cached_nodeids = set(config.cache.get("cache/nodeids", []))
 
-    @pytest.hookimpl(hookwrapper=True, tryfirst=True)
+    @hookimpl(hookwrapper=True, tryfirst=True)
     def pytest_collection_modifyitems(
         self, items: List[nodes.Item]
     ) -> Generator[None, None, None]:
         yield
 
         if self.active:
-            new_items = order_preserving_dict()  # type: Dict[str, nodes.Item]
-            other_items = order_preserving_dict()  # type: Dict[str, nodes.Item]
+            new_items: Dict[str, nodes.Item] = {}
+            other_items: Dict[str, nodes.Item] = {}
             for item in items:
                 if item.nodeid not in self.cached_nodeids:
                     new_items[item.nodeid] = item
@@ -382,7 +414,7 @@ class NFPlugin:
             self.cached_nodeids.update(item.nodeid for item in items)
 
     def _get_increasing_order(self, items: Iterable[nodes.Item]) -> List[nodes.Item]:
-        return sorted(items, key=lambda item: item.fspath.mtime(), reverse=True)
+        return sorted(items, key=lambda item: item.fspath.mtime(), reverse=True)  # type: ignore[no-any-return]
 
     def pytest_sessionfinish(self) -> None:
         config = self.config
@@ -462,22 +494,21 @@ def pytest_cmdline_main(config: Config) -> Optional[Union[int, ExitCode]]:
     return None
 
 
-@pytest.hookimpl(tryfirst=True)
+@hookimpl(tryfirst=True)
 def pytest_configure(config: Config) -> None:
-    config.cache = Cache.for_config(config)
+    config.cache = Cache.for_config(config, _ispytest=True)
     config.pluginmanager.register(LFPlugin(config), "lfplugin")
     config.pluginmanager.register(NFPlugin(config), "nfplugin")
 
 
-@pytest.fixture
+@fixture
 def cache(request: FixtureRequest) -> Cache:
-    """
-    Return a cache object that can persist state between testing sessions.
+    """Return a cache object that can persist state between testing sessions.
 
     cache.get(key, default)
     cache.set(key, value)
 
-    Keys must be a ``/`` separated value, where the first part is usually the
+    Keys must be ``/`` separated strings, where the first part is usually the
     name of your plugin or application to avoid clashes with other cache users.
 
     Values can be any object handled by the json stdlib module.
@@ -495,10 +526,10 @@ def pytest_report_header(config: Config) -> Optional[str]:
         # starting with .., ../.. if sensible
 
         try:
-            displaypath = cachedir.relative_to(str(config.rootdir))
+            displaypath = cachedir.relative_to(config.rootpath)
         except ValueError:
             displaypath = cachedir
-        return "cachedir: {}".format(displaypath)
+        return f"cachedir: {displaypath}"
     return None
 
 
@@ -540,5 +571,5 @@ def cacheshow(config: Config, session: Session) -> int:
             #    print("%s/" % p.relto(basedir))
             if p.is_file():
                 key = str(p.relative_to(basedir))
-                tw.line("{} is a file of length {:d}".format(key, p.stat().st_size))
+                tw.line(f"{key} is a file of length {p.stat().st_size:d}")
     return 0

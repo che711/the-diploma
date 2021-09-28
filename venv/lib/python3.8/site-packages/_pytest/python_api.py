@@ -1,40 +1,36 @@
-import inspect
 import math
 import pprint
 from collections.abc import Iterable
 from collections.abc import Mapping
 from collections.abc import Sized
 from decimal import Decimal
-from itertools import filterfalse
-from numbers import Number
+from numbers import Complex
 from types import TracebackType
 from typing import Any
 from typing import Callable
 from typing import cast
 from typing import Generic
 from typing import Optional
+from typing import overload
 from typing import Pattern
 from typing import Tuple
+from typing import Type
+from typing import TYPE_CHECKING
 from typing import TypeVar
 from typing import Union
 
-from more_itertools.more import always_iterable
+if TYPE_CHECKING:
+    from numpy import ndarray
+
 
 import _pytest._code
-from _pytest.compat import overload
+from _pytest.compat import final
 from _pytest.compat import STRING_TYPES
-from _pytest.compat import TYPE_CHECKING
 from _pytest.outcomes import fail
-
-if TYPE_CHECKING:
-    from typing import Type
-
-
-BASE_TYPE = (type, STRING_TYPES)
 
 
 def _non_numeric_type_error(value, at: Optional[str]) -> TypeError:
-    at_str = " at {}".format(at) if at else ""
+    at_str = f" at {at}" if at else ""
     return TypeError(
         "cannot make approximate comparisons to non-numeric values: {!r} {}".format(
             value, at_str
@@ -46,10 +42,8 @@ def _non_numeric_type_error(value, at: Optional[str]) -> TypeError:
 
 
 class ApproxBase:
-    """
-    Provide shared utilities for making approximate comparisons between numbers
-    or sequences of numbers.
-    """
+    """Provide shared utilities for making approximate comparisons between
+    numbers or sequences of numbers."""
 
     # Tell numpy to use our `__eq__` operator instead of its.
     __array_ufunc__ = None
@@ -81,16 +75,14 @@ class ApproxBase:
         return ApproxScalar(x, rel=self.rel, abs=self.abs, nan_ok=self.nan_ok)
 
     def _yield_comparisons(self, actual):
-        """
-        Yield all the pairs of numbers to be compared.  This is used to
-        implement the `__eq__` method.
+        """Yield all the pairs of numbers to be compared.
+
+        This is used to implement the `__eq__` method.
         """
         raise NotImplementedError
 
     def _check_type(self) -> None:
-        """
-        Raise a TypeError if the expected value is not a valid type.
-        """
+        """Raise a TypeError if the expected value is not a valid type."""
         # This is only a concern if the expected value is a sequence.  In every
         # other case, the approx() function ensures that the expected value has
         # a numeric type.  For this reason, the default is to do nothing.  The
@@ -107,26 +99,22 @@ def _recursive_list_map(f, x):
 
 
 class ApproxNumpy(ApproxBase):
-    """
-    Perform approximate comparisons where the expected value is numpy array.
-    """
+    """Perform approximate comparisons where the expected value is numpy array."""
 
     def __repr__(self) -> str:
         list_scalars = _recursive_list_map(self._approx_scalar, self.expected.tolist())
-        return "approx({!r})".format(list_scalars)
+        return f"approx({list_scalars!r})"
 
     def __eq__(self, actual) -> bool:
         import numpy as np
 
-        # self.expected is supposed to always be an array here
+        # self.expected is supposed to always be an array here.
 
         if not np.isscalar(actual):
             try:
                 actual = np.asarray(actual)
             except Exception as e:
-                raise TypeError(
-                    "cannot compare '{}' to numpy.ndarray".format(actual)
-                ) from e
+                raise TypeError(f"cannot compare '{actual}' to numpy.ndarray") from e
 
         if not np.isscalar(actual) and actual.shape != self.expected.shape:
             return False
@@ -149,10 +137,8 @@ class ApproxNumpy(ApproxBase):
 
 
 class ApproxMapping(ApproxBase):
-    """
-    Perform approximate comparisons where the expected value is a mapping with
-    numeric values (the keys can be anything).
-    """
+    """Perform approximate comparisons where the expected value is a mapping
+    with numeric values (the keys can be anything)."""
 
     def __repr__(self) -> str:
         return "approx({!r})".format(
@@ -160,7 +146,10 @@ class ApproxMapping(ApproxBase):
         )
 
     def __eq__(self, actual) -> bool:
-        if set(actual.keys()) != set(self.expected.keys()):
+        try:
+            if set(actual.keys()) != set(self.expected.keys()):
+                return False
+        except AttributeError:
             return False
 
         return ApproxBase.__eq__(self, actual)
@@ -175,15 +164,10 @@ class ApproxMapping(ApproxBase):
             if isinstance(value, type(self.expected)):
                 msg = "pytest.approx() does not support nested dictionaries: key={!r} value={!r}\n  full mapping={}"
                 raise TypeError(msg.format(key, value, pprint.pformat(self.expected)))
-            elif not isinstance(value, Number):
-                raise _non_numeric_type_error(self.expected, at="key={!r}".format(key))
 
 
 class ApproxSequencelike(ApproxBase):
-    """
-    Perform approximate comparisons where the expected value is a sequence of
-    numbers.
-    """
+    """Perform approximate comparisons where the expected value is a sequence of numbers."""
 
     def __repr__(self) -> str:
         seq_type = type(self.expected)
@@ -194,7 +178,10 @@ class ApproxSequencelike(ApproxBase):
         )
 
     def __eq__(self, actual) -> bool:
-        if len(actual) != len(self.expected):
+        try:
+            if len(actual) != len(self.expected):
+                return False
+        except TypeError:
             return False
         return ApproxBase.__eq__(self, actual)
 
@@ -207,63 +194,73 @@ class ApproxSequencelike(ApproxBase):
             if isinstance(x, type(self.expected)):
                 msg = "pytest.approx() does not support nested data structures: {!r} at index {}\n  full sequence: {}"
                 raise TypeError(msg.format(x, index, pprint.pformat(self.expected)))
-            elif not isinstance(x, Number):
-                raise _non_numeric_type_error(
-                    self.expected, at="index {}".format(index)
-                )
 
 
 class ApproxScalar(ApproxBase):
-    """
-    Perform approximate comparisons where the expected value is a single number.
-    """
+    """Perform approximate comparisons where the expected value is a single number."""
 
     # Using Real should be better than this Union, but not possible yet:
     # https://github.com/python/typeshed/pull/3108
-    DEFAULT_ABSOLUTE_TOLERANCE = 1e-12  # type: Union[float, Decimal]
-    DEFAULT_RELATIVE_TOLERANCE = 1e-6  # type: Union[float, Decimal]
+    DEFAULT_ABSOLUTE_TOLERANCE: Union[float, Decimal] = 1e-12
+    DEFAULT_RELATIVE_TOLERANCE: Union[float, Decimal] = 1e-6
 
     def __repr__(self) -> str:
-        """
-        Return a string communicating both the expected value and the tolerance
-        for the comparison being made, e.g. '1.0 ± 1e-6', '(3+4j) ± 5e-6 ∠ ±180°'.
+        """Return a string communicating both the expected value and the
+        tolerance for the comparison being made.
+
+        For example, ``1.0 ± 1e-6``, ``(3+4j) ± 5e-6 ∠ ±180°``.
         """
 
-        # Infinities aren't compared using tolerances, so don't show a
-        # tolerance. Need to call abs to handle complex numbers, e.g. (inf + 1j)
-        if math.isinf(abs(self.expected)):
+        # Don't show a tolerance for values that aren't compared using
+        # tolerances, i.e. non-numerics and infinities. Need to call abs to
+        # handle complex numbers, e.g. (inf + 1j).
+        if (not isinstance(self.expected, (Complex, Decimal))) or math.isinf(
+            abs(self.expected)  # type: ignore[arg-type]
+        ):
             return str(self.expected)
 
         # If a sensible tolerance can't be calculated, self.tolerance will
         # raise a ValueError.  In this case, display '???'.
         try:
-            vetted_tolerance = "{:.1e}".format(self.tolerance)
-            if isinstance(self.expected, complex) and not math.isinf(self.tolerance):
+            vetted_tolerance = f"{self.tolerance:.1e}"
+            if (
+                isinstance(self.expected, Complex)
+                and self.expected.imag
+                and not math.isinf(self.tolerance)
+            ):
                 vetted_tolerance += " ∠ ±180°"
         except ValueError:
             vetted_tolerance = "???"
 
-        return "{} ± {}".format(self.expected, vetted_tolerance)
+        return f"{self.expected} ± {vetted_tolerance}"
 
     def __eq__(self, actual) -> bool:
-        """
-        Return true if the given value is equal to the expected value within
-        the pre-specified tolerance.
-        """
-        if _is_numpy_array(actual):
+        """Return whether the given value is equal to the expected value
+        within the pre-specified tolerance."""
+        asarray = _as_numpy_array(actual)
+        if asarray is not None:
             # Call ``__eq__()`` manually to prevent infinite-recursion with
             # numpy<1.13.  See #3748.
-            return all(self.__eq__(a) for a in actual.flat)
+            return all(self.__eq__(a) for a in asarray.flat)
 
         # Short-circuit exact equality.
         if actual == self.expected:
             return True
 
+        # If either type is non-numeric, fall back to strict equality.
+        # NB: we need Complex, rather than just Number, to ensure that __abs__,
+        # __sub__, and __float__ are defined.
+        if not (
+            isinstance(self.expected, (Complex, Decimal))
+            and isinstance(actual, (Complex, Decimal))
+        ):
+            return False
+
         # Allow the user to control whether NaNs are considered equal to each
         # other or not.  The abs() calls are for compatibility with complex
         # numbers.
-        if math.isnan(abs(self.expected)):
-            return self.nan_ok and math.isnan(abs(actual))
+        if math.isnan(abs(self.expected)):  # type: ignore[arg-type]
+            return self.nan_ok and math.isnan(abs(actual))  # type: ignore[arg-type]
 
         # Infinity shouldn't be approximately equal to anything but itself, but
         # if there's a relative tolerance, it will be infinite and infinity
@@ -271,11 +268,11 @@ class ApproxScalar(ApproxBase):
         # case would have been short circuited above, so here we can just
         # return false if the expected value is infinite.  The abs() call is
         # for compatibility with complex numbers.
-        if math.isinf(abs(self.expected)):
+        if math.isinf(abs(self.expected)):  # type: ignore[arg-type]
             return False
 
         # Return true if the two numbers are within the tolerance.
-        result = abs(self.expected - actual) <= self.tolerance  # type: bool
+        result: bool = abs(self.expected - actual) <= self.tolerance
         return result
 
     # Ignore type because of https://github.com/python/mypy/issues/4266.
@@ -283,10 +280,10 @@ class ApproxScalar(ApproxBase):
 
     @property
     def tolerance(self):
-        """
-        Return the tolerance for the comparison.  This could be either an
-        absolute tolerance or a relative tolerance, depending on what the user
-        specified or which would be larger.
+        """Return the tolerance for the comparison.
+
+        This could be either an absolute tolerance or a relative tolerance,
+        depending on what the user specified or which would be larger.
         """
 
         def set_default(x, default):
@@ -298,7 +295,7 @@ class ApproxScalar(ApproxBase):
 
         if absolute_tolerance < 0:
             raise ValueError(
-                "absolute tolerance can't be negative: {}".format(absolute_tolerance)
+                f"absolute tolerance can't be negative: {absolute_tolerance}"
             )
         if math.isnan(absolute_tolerance):
             raise ValueError("absolute tolerance can't be NaN.")
@@ -320,7 +317,7 @@ class ApproxScalar(ApproxBase):
 
         if relative_tolerance < 0:
             raise ValueError(
-                "relative tolerance can't be negative: {}".format(absolute_tolerance)
+                f"relative tolerance can't be negative: {absolute_tolerance}"
             )
         if math.isnan(relative_tolerance):
             raise ValueError("relative tolerance can't be NaN.")
@@ -330,17 +327,14 @@ class ApproxScalar(ApproxBase):
 
 
 class ApproxDecimal(ApproxScalar):
-    """
-    Perform approximate comparisons where the expected value is a decimal.
-    """
+    """Perform approximate comparisons where the expected value is a Decimal."""
 
     DEFAULT_ABSOLUTE_TOLERANCE = Decimal("1e-12")
     DEFAULT_RELATIVE_TOLERANCE = Decimal("1e-6")
 
 
 def approx(expected, rel=None, abs=None, nan_ok: bool = False) -> ApproxBase:
-    """
-    Assert that two numbers (or two sets of numbers) are equal to each other
+    """Assert that two numbers (or two sets of numbers) are equal to each other
     within some tolerance.
 
     Due to the `intricacies of floating-point arithmetic`__, numbers that we
@@ -432,6 +426,18 @@ def approx(expected, rel=None, abs=None, nan_ok: bool = False) -> ApproxBase:
         >>> 1 + 1e-8 == approx(1, rel=1e-6, abs=1e-12)
         True
 
+    You can also use ``approx`` to compare nonnumeric types, or dicts and
+    sequences containing nonnumeric types, in which case it falls back to
+    strict equality. This can be useful for comparing dicts and sequences that
+    can contain optional values::
+
+        >>> {"required": 1.0000005, "optional": None} == approx({"required": 1, "optional": None})
+        True
+        >>> [None, 1.0000005] == approx([None,1])
+        True
+        >>> ["foo", 1.0000005] == approx([None,1])
+        False
+
     If you're thinking about using ``approx``, then you might want to know how
     it compares to other good ways of comparing floating-point numbers.  All of
     these algorithms are based on relative and absolute tolerances and should
@@ -443,7 +449,7 @@ def approx(expected, rel=None, abs=None, nan_ok: bool = False) -> ApproxBase:
       both ``a`` and ``b``, this test is symmetric (i.e.  neither ``a`` nor
       ``b`` is a "reference value").  You have to specify an absolute tolerance
       if you want to compare to ``0.0`` because there is no tolerance by
-      default.  Only available in python>=3.5.  `More information...`__
+      default.  `More information...`__
 
       __ https://docs.python.org/3/library/math.html#math.isclose
 
@@ -454,7 +460,7 @@ def approx(expected, rel=None, abs=None, nan_ok: bool = False) -> ApproxBase:
       think of ``b`` as the reference value.  Support for comparing sequences
       is provided by ``numpy.allclose``.  `More information...`__
 
-      __ http://docs.scipy.org/doc/numpy-1.10.0/reference/generated/numpy.isclose.html
+      __ https://numpy.org/doc/stable/reference/generated/numpy.isclose.html
 
     - ``unittest.TestCase.assertAlmostEqual(a, b)``: True if ``a`` and ``b``
       are within an absolute tolerance of ``1e-7``.  No relative tolerance is
@@ -489,6 +495,14 @@ def approx(expected, rel=None, abs=None, nan_ok: bool = False) -> ApproxBase:
        follows a fixed behavior. `More information...`__
 
        __ https://docs.python.org/3/reference/datamodel.html#object.__ge__
+
+    .. versionchanged:: 3.7.1
+       ``approx`` raises ``TypeError`` when it encounters a dict value or
+       sequence element of nonnumeric type.
+
+    .. versionchanged:: 6.1.0
+       ``approx`` falls back to strict equality for nonnumeric types instead
+       of raising ``TypeError``.
     """
 
     # Delegate the comparison to a class that knows how to deal with the type
@@ -509,36 +523,50 @@ def approx(expected, rel=None, abs=None, nan_ok: bool = False) -> ApproxBase:
     __tracebackhide__ = True
 
     if isinstance(expected, Decimal):
-        cls = ApproxDecimal  # type: Type[ApproxBase]
-    elif isinstance(expected, Number):
-        cls = ApproxScalar
+        cls: Type[ApproxBase] = ApproxDecimal
     elif isinstance(expected, Mapping):
         cls = ApproxMapping
     elif _is_numpy_array(expected):
+        expected = _as_numpy_array(expected)
         cls = ApproxNumpy
     elif (
         isinstance(expected, Iterable)
         and isinstance(expected, Sized)
-        and not isinstance(expected, STRING_TYPES)
+        # Type ignored because the error is wrong -- not unreachable.
+        and not isinstance(expected, STRING_TYPES)  # type: ignore[unreachable]
     ):
         cls = ApproxSequencelike
     else:
-        raise _non_numeric_type_error(expected, at=None)
+        cls = ApproxScalar
 
     return cls(expected, rel, abs, nan_ok)
 
 
 def _is_numpy_array(obj: object) -> bool:
     """
-    Return true if the given object is a numpy array.  Make a special effort to
-    avoid importing numpy unless it's really necessary.
+    Return true if the given object is implicitly convertible to ndarray,
+    and numpy is already imported.
+    """
+    return _as_numpy_array(obj) is not None
+
+
+def _as_numpy_array(obj: object) -> Optional["ndarray"]:
+    """
+    Return an ndarray if the given object is implicitly convertible to ndarray,
+    and numpy is already imported, otherwise None.
     """
     import sys
 
-    np = sys.modules.get("numpy")  # type: Any
+    np: Any = sys.modules.get("numpy")
     if np is not None:
-        return isinstance(obj, np.ndarray)
-    return False
+        # avoid infinite recursion on numpy scalars, which have __array__
+        if np.isscalar(obj):
+            return None
+        elif isinstance(obj, np.ndarray):
+            return obj
+        elif hasattr(obj, "__array__") or hasattr("obj", "__array_interface__"):
+            return np.asarray(obj)
+    return None
 
 
 # builtin pytest.raises helper
@@ -548,33 +576,31 @@ _E = TypeVar("_E", bound=BaseException)
 
 @overload
 def raises(
-    expected_exception: Union["Type[_E]", Tuple["Type[_E]", ...]],
+    expected_exception: Union[Type[_E], Tuple[Type[_E], ...]],
     *,
-    match: "Optional[Union[str, Pattern]]" = ...
+    match: Optional[Union[str, Pattern[str]]] = ...,
 ) -> "RaisesContext[_E]":
-    ...  # pragma: no cover
+    ...
 
 
-@overload  # noqa: F811
-def raises(  # noqa: F811
-    expected_exception: Union["Type[_E]", Tuple["Type[_E]", ...]],
-    func: Callable,
+@overload
+def raises(
+    expected_exception: Union[Type[_E], Tuple[Type[_E], ...]],
+    func: Callable[..., Any],
     *args: Any,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> _pytest._code.ExceptionInfo[_E]:
-    ...  # pragma: no cover
+    ...
 
 
-def raises(  # noqa: F811
-    expected_exception: Union["Type[_E]", Tuple["Type[_E]", ...]],
-    *args: Any,
-    **kwargs: Any
+def raises(
+    expected_exception: Union[Type[_E], Tuple[Type[_E], ...]], *args: Any, **kwargs: Any
 ) -> Union["RaisesContext[_E]", _pytest._code.ExceptionInfo[_E]]:
-    r"""
-    Assert that a code block/function call raises ``expected_exception``
+    r"""Assert that a code block/function call raises ``expected_exception``
     or raise a failure exception otherwise.
 
-    :kwparam match: if specified, a string containing a regular expression,
+    :kwparam match:
+        If specified, a string containing a regular expression,
         or a regular expression object, that is tested against the string
         representation of the exception using ``re.search``. To match a literal
         string that may contain `special characters`__, the pattern can
@@ -592,7 +618,8 @@ def raises(  # noqa: F811
     Use ``pytest.raises`` as a context manager, which will capture the exception of the given
     type::
 
-        >>> with raises(ZeroDivisionError):
+        >>> import pytest
+        >>> with pytest.raises(ZeroDivisionError):
         ...    1/0
 
     If the code block does not raise the expected exception (``ZeroDivisionError`` in the example
@@ -601,16 +628,16 @@ def raises(  # noqa: F811
     You can also use the keyword argument ``match`` to assert that the
     exception matches a text or regex::
 
-        >>> with raises(ValueError, match='must be 0 or None'):
+        >>> with pytest.raises(ValueError, match='must be 0 or None'):
         ...     raise ValueError("value must be 0 or None")
 
-        >>> with raises(ValueError, match=r'must be \d+$'):
+        >>> with pytest.raises(ValueError, match=r'must be \d+$'):
         ...     raise ValueError("value must be 42")
 
     The context manager produces an :class:`ExceptionInfo` object which can be used to inspect the
     details of the captured exception::
 
-        >>> with raises(ValueError) as exc_info:
+        >>> with pytest.raises(ValueError) as exc_info:
         ...     raise ValueError("value must be 42")
         >>> assert exc_info.type is ValueError
         >>> assert exc_info.value.args[0] == "value must be 42"
@@ -624,7 +651,7 @@ def raises(  # noqa: F811
        not be executed. For example::
 
            >>> value = 15
-           >>> with raises(ValueError) as exc_info:
+           >>> with pytest.raises(ValueError) as exc_info:
            ...     if value > 10:
            ...         raise ValueError("value must be <= 10")
            ...     assert exc_info.type is ValueError  # this will not execute
@@ -632,7 +659,7 @@ def raises(  # noqa: F811
        Instead, the following approach must be taken (note the difference in
        scope)::
 
-           >>> with raises(ValueError) as exc_info:
+           >>> with pytest.raises(ValueError) as exc_info:
            ...     if value > 10:
            ...         raise ValueError("value must be <= 10")
            ...
@@ -680,16 +707,21 @@ def raises(  # noqa: F811
         documentation for :ref:`the try statement <python:try>`.
     """
     __tracebackhide__ = True
-    for exc in filterfalse(
-        inspect.isclass, always_iterable(expected_exception, BASE_TYPE)
-    ):
-        msg = "exceptions must be derived from BaseException, not %s"
-        raise TypeError(msg % type(exc))
 
-    message = "DID NOT RAISE {}".format(expected_exception)
+    if isinstance(expected_exception, type):
+        excepted_exceptions: Tuple[Type[_E], ...] = (expected_exception,)
+    else:
+        excepted_exceptions = expected_exception
+    for exc in excepted_exceptions:
+        if not isinstance(exc, type) or not issubclass(exc, BaseException):  # type: ignore[unreachable]
+            msg = "expected exception must be a BaseException type, not {}"  # type: ignore[unreachable]
+            not_a = exc.__name__ if isinstance(exc, type) else type(exc).__name__
+            raise TypeError(msg.format(not_a))
+
+    message = f"DID NOT RAISE {expected_exception}"
 
     if not args:
-        match = kwargs.pop("match", None)
+        match: Optional[Union[str, Pattern[str]]] = kwargs.pop("match", None)
         if kwargs:
             msg = "Unexpected keyword arguments passed to pytest.raises: "
             msg += ", ".join(sorted(kwargs))
@@ -717,17 +749,18 @@ def raises(  # noqa: F811
 raises.Exception = fail.Exception  # type: ignore
 
 
+@final
 class RaisesContext(Generic[_E]):
     def __init__(
         self,
-        expected_exception: Union["Type[_E]", Tuple["Type[_E]", ...]],
+        expected_exception: Union[Type[_E], Tuple[Type[_E], ...]],
         message: str,
-        match_expr: Optional[Union[str, "Pattern"]] = None,
+        match_expr: Optional[Union[str, Pattern[str]]] = None,
     ) -> None:
         self.expected_exception = expected_exception
         self.message = message
         self.match_expr = match_expr
-        self.excinfo = None  # type: Optional[_pytest._code.ExceptionInfo[_E]]
+        self.excinfo: Optional[_pytest._code.ExceptionInfo[_E]] = None
 
     def __enter__(self) -> _pytest._code.ExceptionInfo[_E]:
         self.excinfo = _pytest._code.ExceptionInfo.for_later()
@@ -735,7 +768,7 @@ class RaisesContext(Generic[_E]):
 
     def __exit__(
         self,
-        exc_type: Optional["Type[BaseException]"],
+        exc_type: Optional[Type[BaseException]],
         exc_val: Optional[BaseException],
         exc_tb: Optional[TracebackType],
     ) -> bool:
@@ -746,9 +779,7 @@ class RaisesContext(Generic[_E]):
         if not issubclass(exc_type, self.expected_exception):
             return False
         # Cast to narrow the exception type now that it's verified.
-        exc_info = cast(
-            Tuple["Type[_E]", _E, TracebackType], (exc_type, exc_val, exc_tb)
-        )
+        exc_info = cast(Tuple[Type[_E], _E, TracebackType], (exc_type, exc_val, exc_tb))
         self.excinfo.fill_unfilled(exc_info)
         if self.match_expr is not None:
             self.excinfo.match(self.match_expr)

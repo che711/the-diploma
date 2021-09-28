@@ -7,6 +7,7 @@ from typing import Sequence
 from typing import TextIO
 
 from .wcwidth import wcswidth
+from _pytest.compat import final
 
 
 # This code was initially copied from py 1.8.1, file _io/terminalwriter.py.
@@ -36,6 +37,7 @@ def should_do_markup(file: TextIO) -> bool:
     )
 
 
+@final
 class TerminalWriter:
     _esctable = dict(
         black=30,
@@ -74,7 +76,7 @@ class TerminalWriter:
         self._file = file
         self.hasmarkup = should_do_markup(file)
         self._current_line = ""
-        self._terminal_width = None  # type: Optional[int]
+        self._terminal_width: Optional[int] = None
         self.code_highlight = True
 
     @property
@@ -95,7 +97,7 @@ class TerminalWriter:
     def markup(self, text: str, **markup: bool) -> str:
         for name in markup:
             if name not in self._esctable:
-                raise ValueError("unknown markup: {!r}".format(name))
+                raise ValueError(f"unknown markup: {name!r}")
         if self.hasmarkup:
             esc = [self._esctable[name] for name, on in markup.items() if on]
             if esc:
@@ -107,17 +109,17 @@ class TerminalWriter:
         sepchar: str,
         title: Optional[str] = None,
         fullwidth: Optional[int] = None,
-        **markup: bool
+        **markup: bool,
     ) -> None:
         if fullwidth is None:
             fullwidth = self.fullwidth
-        # the goal is to have the line be as long as possible
-        # under the condition that len(line) <= fullwidth
+        # The goal is to have the line be as long as possible
+        # under the condition that len(line) <= fullwidth.
         if sys.platform == "win32":
-            # if we print in the last column on windows we are on a
+            # If we print in the last column on windows we are on a
             # new line but there is no way to verify/neutralize this
-            # (we may not know the exact line width)
-            # so let's be defensive to avoid empty lines in the output
+            # (we may not know the exact line width).
+            # So let's be defensive to avoid empty lines in the output.
             fullwidth -= 1
         if title is not None:
             # we want 2 + 2*len(fill) + len(title) <= fullwidth
@@ -126,14 +128,14 @@ class TerminalWriter:
             #         N <= (fullwidth - len(title) - 2) // (2*len(sepchar))
             N = max((fullwidth - len(title) - 2) // (2 * len(sepchar)), 1)
             fill = sepchar * N
-            line = "{} {} {}".format(fill, title, fill)
+            line = f"{fill} {title} {fill}"
         else:
             # we want len(sepchar)*N <= fullwidth
             # i.e.    N <= fullwidth // len(sepchar)
             line = sepchar * (fullwidth // len(sepchar))
-        # in some situations there is room for an extra sepchar at the right,
+        # In some situations there is room for an extra sepchar at the right,
         # in particular if we consider that with a sepchar like "_ " the
-        # trailing space is not important at the end of the line
+        # trailing space is not important at the end of the line.
         if len(line) + len(sepchar.rstrip()) <= fullwidth:
             line += sepchar.rstrip()
 
@@ -202,7 +204,7 @@ class TerminalWriter:
         except ImportError:
             return source
         else:
-            highlighted = highlight(
+            highlighted: str = highlight(
                 source, PythonLexer(), TerminalFormatter(bg="dark")
-            )  # type: str
+            )
             return highlighted
