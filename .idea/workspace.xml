@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+<<<<<<< HEAD
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
@@ -224,5 +225,9 @@
     <MESSAGE value="add tests" />
     <MESSAGE value="add fixture" />
     <option name="LAST_COMMIT_MESSAGE" value="add fixture" />
+=======
+  <component name="PropertiesComponent">
+    <property name="settings.editor.selected.configurable" value="preferences.fileTypes" />
+>>>>>>> 72ccbd26a51404c6cafb1bd8b80f521a577ae8e6
   </component>
 </project>
