@@ -1,4 +1,4 @@
-#!/home/chernomorov/Desktop/projects/the-diploma/venv/bin/python
+#!/home/chernomorov/Documents/projects/the-diploma/venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
