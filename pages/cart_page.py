@@ -22,7 +22,7 @@ class CartPage(BasePage):
 
     def product_name_in_cart(self):
         """Find out the name of the product in the shopping cart"""
-        cart_product_name = self.browser.find_element('//*[@id="item_4_title_link"]/div')
+        cart_product_name = self.browser.find_element(*CartPageLocators.PRODUCTS_NAME_IN_CART)
         text_name2 = cart_product_name.text
         print("\n\tThe product name on the cart: ", text_name2)
         return text_name2
