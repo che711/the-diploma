@@ -96,3 +96,5 @@ def test_identical_names(browser):
     cart_product_name.product_name_in_cart()
     assert (product_name.name_in_main_page() == cart_product_name.product_name_in_cart()), 'Different names'
 
+
+
