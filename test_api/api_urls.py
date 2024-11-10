@@ -6,3 +6,5 @@ BOOKING = BASE_URL + "/booking"
 DELETE_BOOKING = f"https://restful-booker.herokuapp.com/booking/{randint(1,5)}"
 PING = BASE_URL + "/ping"
 
+
+
